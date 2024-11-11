@@ -222,6 +222,30 @@ def parse_args():
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "--insert_layers",
+        type=str,
+        default="[20]",
+    )
+    parser.add_argument(
+        "--normalize",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--operator",
+        type=str,
+        default="replace",
+    )
+    parser.add_argument(
+        "--coef",
+        type=float,
+        default="1.0",
+    )
+    parser.add_argument(
+        "--discriminator",
+        type=str,
+        default=None,
+    )
     return parser.parse_args()
 
 

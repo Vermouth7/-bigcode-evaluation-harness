@@ -155,6 +155,11 @@ def parallel_generations(
         intermediate_save_generations_path=intermediate_save_generations_path,
         my_mode=args.my_mode,
         split_file=args.split_file,
+        insert_layers=args.insert_layers,
+        normalize=args.normalize,
+        operator=args.operator,
+        coef=args.coef,
+        discriminator=args.discriminator,
         **gen_kwargs,
     )
     return generations

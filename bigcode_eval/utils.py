@@ -174,6 +174,11 @@ class TokenizedDataset(IterableDataset):
 
     def _make_instruction_prompt(self, instruction, context, prefix=""):
         """Make a prompt for instruction-tuning. Delimit instruction and context with specific tokens if provided."""
+        
+        messages = [
+            {"role": "user", "content": instruction},
+            ]
+        
         if not self.instruction_tokens:
             warnings.warn(
                 "Instruction-tuning tokens are not provided for an instruction-tuning task, we will leave them empty."
@@ -185,10 +190,15 @@ class TokenizedDataset(IterableDataset):
                 warnings.warn(
                     "Instruction-tuning tokens provided but one or more are empty. Ignore warning if this was intended"
                 )
-        prompt = (
-            prefix + user_token + instruction + end_token + assistant_token + context
-        )
-
+        # prompt = (
+        #     prefix + user_token + instruction + end_token + assistant_token + context
+        # )
+        prompt=self.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )+context
+        
         return prompt
 
 
@@ -257,6 +267,11 @@ def complete_code(
     intermediate_save_generations_path: Optional[str] = None,
     my_mode=0,
     split_file=None,
+    insert_layers=None,
+    normalize=True,
+    operator=None,
+    coef=1.0,
+    discriminator=None,
     **gen_kwargs,
 ):
     """Generate multiple codes for each task in the dataset using multiple GPUs with accelerate.
@@ -321,21 +336,25 @@ def complete_code(
                     # In transformers (>= 4.40.2), if the length of input_ids == max_length, a ValueError is thrown.
                     # We want to ignore this error in order to reproduce old results with mbpp.
                     try:
-                        if split_file is not None:
-                            insert_layer=[18]
+                        if my_mode!=0 and split_file is not None:
+                            insert_layer=eval(insert_layers)
+                            print("insert layers: ",insert_layer)
                             layers = [i - 1 for i in insert_layer]
                             vector=get_split_hs(model,tokenizer,inputs_ids,split_file)[0]  ## only for one batch
                             model.reset()
-                            model.set_controller(layer_ids=layers, activations=vector)
+                            model.set_controller(layer_ids=layers, activations=vector,normalize=normalize,operator=operator,coef=coef)
                             model.set_pos(inputs)
+                        
                         generated_tokens = model.generate(
                             input_ids=inputs,
                             num_return_sequences=batch_size,
                             mode=my_mode,
-                            use_cache=True,
-                            output_hidden_states=False,
+                            use_cache=False,
+                            output_hidden_states=True,
+                            discriminator=discriminator,
                             **gen_kwargs,
                         )
+                        
                     except ValueError as e:
                         # When the length of input_ids == max_length, the generation is the same as the input
                         if str(e).startswith(f"Input length of input_ids is {inputs.shape[1]}, but `max_length` is set to {gen_kwargs['max_length']}"):
