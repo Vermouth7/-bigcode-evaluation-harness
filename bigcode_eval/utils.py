@@ -5,6 +5,7 @@ import re
 import warnings
 from collections import defaultdict
 from typing import List, Optional
+from types import MethodType
 
 import torch
 from torch.utils.data import IterableDataset
@@ -349,10 +350,8 @@ def complete_code(
                         generated_tokens = model.generate(
                             input_ids=inputs,
                             num_return_sequences=batch_size,
-                            mode=my_mode,
                             use_cache=False,
                             output_hidden_states=True,
-                            discriminator=discriminator,
                             **gen_kwargs,
                         )
                         

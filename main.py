@@ -2,6 +2,7 @@ import fnmatch
 import json
 import os
 import warnings
+from types import MethodType
 
 import datasets
 import torch
@@ -251,6 +252,11 @@ def parse_args():
         choices=['no','mask','random'],
         default='no',
     )
+    parser.add_argument(
+        "--activation_mask",
+        type=str,
+        default='/root/autodl-tmp/bigcode-evaluation-harness/ds-7b',
+    )
     return parser.parse_args()
 
 
@@ -338,6 +344,21 @@ def main():
                 args.model,
                 **model_kwargs,
             )
+            lang=['cpp','go','java','humaneval','js','php']
+            
+            if args.mask=='mask':
+                indx=0
+                for idx, task in enumerate(lang):
+                    if task in args.tasks:
+                        indx=idx
+                        break
+                activation_masks = torch.load(args.activation_mask)
+                activation_mask=activation_masks[indx]
+                
+                for i, layer_mask in enumerate(activation_mask):
+                    obj=model.model.layers[i].mlp
+                    obj.forward = MethodType(factory(layer_mask.to('cuda')), obj)
+                    
             # model = WrappedModel(model)
             
         elif args.modeltype == "seq2seq":
@@ -453,6 +474,24 @@ def main():
         with open(args.metric_output_path, "w") as f:
             f.write(dumped)
 
+def factory(mask):
+    def llama_forward(self, x):
+        gate_up, _ = self.gate_up_proj(x)  # b, l, 2i
+        i = gate_up.size(-1)
+        activation = F.silu(gate_up[:, :, : i // 2])
+        activation.index_fill_(1, mask, 0)
+        x = activation * gate_up[:, i // 2 :]
+        x, _ = self.down_proj(x)
+        return x
+
+    def ds_forward(self, x):
+        activation=self.act_fn(self.gate_proj(x)) * self.up_proj(x)
+        activation.index_fill_(-1, mask, 0)
+        down_proj=self.down_proj(activation)
+        return down_proj
+
+    return ds_forward
+            
 
 if __name__ == "__main__":
     main()
