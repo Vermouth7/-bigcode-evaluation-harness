@@ -160,6 +160,7 @@ def parallel_generations(
         operator=args.operator,
         coef=args.coef,
         discriminator=args.discriminator,
+        mask=args.mask,
         **gen_kwargs,
     )
     return generations

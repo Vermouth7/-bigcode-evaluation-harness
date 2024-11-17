@@ -98,22 +98,22 @@ class TokenizedDataset(IterableDataset):
             return_token_type_ids = False
         else:
             return_token_type_ids = None  # default
-        for i in range(0,len(prompts)):
-            # prompts[i]=prompt_template(self.tokenizer,prompts[i])
+        # for i in range(0,len(prompts)):
+        #     # prompts[i]=prompt_template(self.tokenizer,prompts[i])
             
-            with open(self.split_file, 'r', encoding='utf-8') as input_file:
-                data=json.load(input_file)
-            pattern = r'""".*?"""'
-            match = re.search(pattern, prompts[i], re.DOTALL)
+        #     with open(self.split_file, 'r', encoding='utf-8') as input_file:
+        #         data=json.load(input_file)
+        #     pattern = r'""".*?"""'
+        #     match = re.search(pattern, prompts[i], re.DOTALL)
 
-            if match:
-                matched_text = match.group(0)
+        #     if match:
+        #         matched_text = match.group(0)
                 
-                modified_text = matched_text[:-3] + data[i]['instruction 1']+" "+data[i]['instruction 2'] + '"""'
+        #         modified_text = matched_text[:-3] + data[i]['instruction 1']+" "+data[i]['instruction 2'] + '"""'
                 
-                prompts[i] = prompts[i].replace(matched_text, modified_text)
-            with open('./test.json', 'w', encoding='utf-8') as output_file:
-                json.dump(prompts,output_file,indent=4)
+        #         prompts[i] = prompts[i].replace(matched_text, modified_text)
+        #     with open('./test.json', 'w', encoding='utf-8') as output_file:
+        #         json.dump(prompts,output_file,indent=4)
         outputs = self.tokenizer(
             prompts,
             padding=True,
@@ -272,6 +272,7 @@ def complete_code(
     operator=None,
     coef=1.0,
     discriminator=None,
+    mask='no',
     **gen_kwargs,
 ):
     """Generate multiple codes for each task in the dataset using multiple GPUs with accelerate.
@@ -336,14 +337,14 @@ def complete_code(
                     # In transformers (>= 4.40.2), if the length of input_ids == max_length, a ValueError is thrown.
                     # We want to ignore this error in order to reproduce old results with mbpp.
                     try:
-                        if my_mode!=0 and split_file is not None:
-                            insert_layer=eval(insert_layers)
-                            print("insert layers: ",insert_layer)
-                            layers = [i - 1 for i in insert_layer]
-                            vector=get_split_hs(model,tokenizer,inputs_ids,split_file)[0]  ## only for one batch
-                            model.reset()
-                            model.set_controller(layer_ids=layers, activations=vector,normalize=normalize,operator=operator,coef=coef)
-                            model.set_pos(inputs)
+                        # if my_mode!=0 and split_file is not None:
+                        #     insert_layer=eval(insert_layers)
+                        #     print("insert layers: ",insert_layer)
+                        #     layers = [i - 1 for i in insert_layer]
+                        #     vector=get_split_hs(model,tokenizer,inputs_ids,split_file)[0]  ## only for one batch
+                        #     model.reset()
+                        #     model.set_controller(layer_ids=layers, activations=vector,normalize=normalize,operator=operator,coef=coef)
+                        #     model.set_pos(inputs)
                         
                         generated_tokens = model.generate(
                             input_ids=inputs,

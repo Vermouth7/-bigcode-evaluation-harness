@@ -246,6 +246,11 @@ def parse_args():
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "--mask",
+        choices=['no','mask','random'],
+        default='no',
+    )
     return parser.parse_args()
 
 
@@ -333,7 +338,7 @@ def main():
                 args.model,
                 **model_kwargs,
             )
-            model = WrappedModel(model)
+            # model = WrappedModel(model)
             
         elif args.modeltype == "seq2seq":
             warnings.warn(

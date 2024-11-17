@@ -1,53 +1,69 @@
-# CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --main_process_port 29502 --num_processes=4  main.py \
-#   --model /data1/chh/models/meta-llama/Meta-Llama-3-8B-Instruct \
-#   --tasks ds1000-all-completion \
-#   --n_samples 1 \
-#   --max_length_generation 512 \
-#   --temperature 0.1 \
-#   --do_sample True \
-#   --batch_size 1 \
-#   --precision bf16 \
-#   --allow_code_execution \
-#   --generation_only \
-#   --save_generations \
-#   --save_generations_path /home/chh/repos/my_ctg/results/ds1000/ \
-#   --my_mode 0 \
-#   --split_file /home/chh/repos/my_ctg/instructions/ds1000/ds1000_2steps_llama.json 
-
-# CUDA_VISIBLE_DEVICES=0 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
-#   --model /data1/chh/models/meta-llama/Meta-Llama-3-8B-Instruct \
-#   --tasks humaneval \
-#   --n_samples 10 \
+# CUDA_VISIBLE_DEVICES=5 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
+#   --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+#   --tasks multiple-js \
 #   --max_new_tokens 512 \
-#   --temperature 0.1 \
-#   --do_sample True \
+#   --temperature 0.0 \
 #   --batch_size 1 \
 #   --precision bf16 \
 #   --allow_code_execution \
+#   --do_sample=False \
 #   --save_generations \
-#   --save_generations_path /home/chh/repos/my_ctg/results/humaneval/ \
-#   --my_mode 0 \
-#   --split_file /home/chh/repos/my_ctg/instructions/humaneval/humaneval_2steps_llama_2.json
+#   --save_generations_path /home/chh/repos/my_ctg/results/multiple/gen_js.json
+  
+# CUDA_VISIBLE_DEVICES=5 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
+#   --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+#   --tasks multiple-py \
+#   --max_new_tokens 512 \
+#   --temperature 0.0 \
+#   --batch_size 1 \
+#   --precision bf16 \
+#   --allow_code_execution \
+#   --do_sample=False \
+#   --save_generations \
+#   --save_generations_path /home/chh/repos/my_ctg/results/multiple/gen_py.json
+
+# CUDA_VISIBLE_DEVICES=5 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
+#   --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+#   --tasks multiple-cpp \
+#   --max_new_tokens 512 \
+#   --temperature 0.0 \
+#   --batch_size 1 \
+#   --precision bf16 \
+#   --allow_code_execution \
+#   --do_sample=False \
+#   --save_generations \
+#   --save_generations_path /home/chh/repos/my_ctg/results/multiple/gen_cpp.json
+
+# CUDA_VISIBLE_DEVICES=5 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
+#   --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+#   --tasks multiple-php \
+#   --max_new_tokens 512 \
+#   --temperature 0.0 \
+#   --batch_size 1 \
+#   --precision bf16 \
+#   --allow_code_execution \
+#   --do_sample=False \
+#   --save_generations \
+#   --save_generations_path /home/chh/repos/my_ctg/results/multiple/gen_php.json
+
+# CUDA_VISIBLE_DEVICES=5 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
+#   --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+#   --tasks multiple-go \
+#   --max_new_tokens 512 \
+#   --temperature 0.0 \
+#   --batch_size 1 \
+#   --precision bf16 \
+#   --allow_code_execution \
+#   --do_sample=False \
+#   --save_generations \
+#   --save_generations_path /home/chh/repos/my_ctg/results/multiple/gen_go.json
 
 
-CUDA_VISIBLE_DEVICES=1 accelerate launch --main_process_port 29502 --num_processes=1  main.py \
-  --model /data1/chh/models/meta-llama/Meta-Llama-3-8B-Instruct \
-  --tasks instruct-humaneval \
-  --instruction_tokens '<|start_header_id|>user<|end_header_id|>,<|eot_id|>,<|start_header_id|>assistant<|end_header_id|>' \
-  --n_samples 10 \
-  --max_new_tokens 512 \
-  --temperature 0.1 \
-  --do_sample True \
-  --batch_size 1 \
-  --precision bf16 \
-  --allow_code_execution \
-  --save_generations \
-  --save_generations_path /home/chh/repos/my_ctg/results/humaneval/ \
-  --my_mode 0 \
-  --split_file /home/chh/repos/my_ctg/instructions/humaneval/humaneval_2steps_llama_2.json \
-  --insert_layers [20] \
-  --normalize \
-  --operator 'linear_comb' \
-  --coef 0.5 \
-  --split_file /home/chh/repos/my_ctg/instructions/ifeval/ifeval_2steps_llama_2.json
 
+
+docker run -v /home/chh/repos/my_ctg/results/multiple/gen_go_multiple-go.json:/app/generations_go.json:ro -it evaluation-harness-multiple \
+    --model /data1/chh/models/deepseek-ai/deepseek-coder-6.7b-base \
+    --tasks multiple-go \
+    --load_generations_path /app/generations_go.json \
+    --allow_code_execution \
+    --n_samples 1
